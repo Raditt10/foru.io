@@ -12,7 +12,7 @@
 </p>
 
 **forU ** adalah web interaktif untuk nembak doi secara kreatif! Kirim link spesial lewat Discord atau langsung, lengkap dengan animasi amplop, countdown, dan tombol "gamau" yang lari-larian.
-Kalau doi jawab **"IYA mau!"**, confetti bertebaran, lagu romantis menyala, dan notifikasi otomatis masuk ke Discord kamu! 💖
+Kalau doi jawab **"IYA mau!"**, dan notifikasi otomatis masuk ke Discord kamu! 
 
 ---
 
