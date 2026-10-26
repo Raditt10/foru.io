@@ -90,4 +90,4 @@ npm run dev
 
 Project ini dibuat untuk hiburan dan personal. Bebas dimodifikasi.
 
-_© 2025 Dikembangkan pertama kali oleh [Raditt10](https://github.com/Raditt10)_
+_© 2025 Dikembangkan oleh [Raditt10](https://github.com/Raditt10)_
