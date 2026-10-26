@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Gombalan from './components/Gombalan';
-import HeartEffect from './components/Background';
+import HeartEffect from './components/HeartEffect';
 import gsap from 'gsap';
 
 function App() {
@@ -12,7 +12,7 @@ function App() {
 
   const flapRef = useRef<SVGPathElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const letterRef = useRef<any>(null); // gunakan 'any' atau union type untuk menangani SVG/DIV sekaligus
+  const letterRef = useRef<any>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const textHintRef = useRef<HTMLDivElement>(null);
   const envelopeFrontRef = useRef<HTMLDivElement>(null);
@@ -32,10 +32,10 @@ function App() {
 
   useEffect(() => {
     if (isEnvelopeOpened && letterRef.current) {
-        gsap.fromTo(letterRef.current, 
-            { y: 50, opacity: 0, scale: 0.8 },
-            { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: "back.out(1.5)" }
-        );
+      gsap.fromTo(letterRef.current, 
+        { y: 30, opacity: 0, scale: 0.9 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.65, ease: "back.out(1.4)" }
+      );
     }
   }, [isEnvelopeOpened]);
 
@@ -70,7 +70,7 @@ function App() {
 
   const handleSuccess = async (noCount: number) => {
     try {
-      await fetch('http://localhost:5000/api/track', {
+      await fetch('/api/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -90,6 +90,8 @@ function App() {
     
     wrapperRef.current.style.pointerEvents = 'none';
 
+    const isMobile = window.innerWidth <= 768;
+
     const tl = gsap.timeline({
       defaults: { ease: "power3.inOut" },
       onComplete: () => {
@@ -101,8 +103,8 @@ function App() {
     // 1. Fade out hint text
     tl.to(textHintRef.current, {
       opacity: 0,
-      y: 15,
-      duration: 0.35,
+      y: 12,
+      duration: 0.25,
       ease: "power2.in"
     })
 
@@ -110,58 +112,58 @@ function App() {
     .to(flapRef.current, {
       rotateX: 180,
       transformOrigin: "top",
-      duration: 0.65,
+      duration: 0.55,
       ease: "power2.inOut"
-    }, "-=0.15")
+    }, "-=0.1")
 
     // 3. Kertas naik keluar dari amplop
     .to(letterRef.current, {
-      y: -100,
-      duration: 0.7,
+      y: isMobile ? -75 : -100,
+      duration: 0.6,
       ease: "power3.out"
-    }, "-=0.15")
+    }, "-=0.1")
 
     // 4. Amplop jatuh & menghilang
     .to([envelopeFrontRef.current, envelopeBackRef.current], {
-      y: 120,
+      y: 90,
       opacity: 0,
-      scale: 0.85,
-      duration: 0.55,
+      scale: 0.88,
+      duration: 0.45,
       ease: "power3.in"
-    }, "-=0.35")
+    }, "-=0.3")
 
     // 5. Kertas melebar jadi kartu + reposition ke tengah
     .to(letterRef.current, {
-      width: window.innerWidth > 600 ? "450px" : "90vw",
+      width: isMobile ? "90vw" : "440px",
       height: "auto",
-      minHeight: "260px",
-      padding: "2.8rem",
+      minHeight: isMobile ? "220px" : "260px",
+      padding: isMobile ? "1.6rem 1.2rem" : "2.6rem",
       y: 0,
-      borderRadius: "25px",
-      border: "4px dashed #ff4d79",
-      boxShadow: "0 12px 40px rgba(255, 77, 121, 0.3)",
-      duration: 0.75,
+      borderRadius: "22px",
+      border: "3.5px dashed #ff4d79",
+      boxShadow: "0 10px 32px rgba(255, 77, 121, 0.25)",
+      duration: 0.65,
       ease: "expo.out"
     })
 
     // 6. Unblur teks secara bersamaan
     .to(contentRef.current, {
       filter: "blur(0px)",
-      duration: 0.65,
+      duration: 0.5,
       ease: "power2.out"
-    }, "-=0.55")
+    }, "-=0.45")
 
     // 7. Tampilkan tombol dengan animasi pop
     .fromTo(contentRef.current?.querySelector('.start-btn') as HTMLElement, {
       visibility: "visible",
-      scale: 0.5,
+      scale: 0.6,
       opacity: 0,
     }, {
       scale: 1,
       opacity: 1,
       visibility: "visible",
-      duration: 0.45,
-      ease: "back.out(2.5)",
+      duration: 0.4,
+      ease: "back.out(2)",
       clearProps: "scale"
     }, "-=0.2");
   };
@@ -180,8 +182,8 @@ function App() {
           if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
         }}
         style={{
-          background: 'rgba(255,255,255,0.7)',
-          border: '2px solid rgba(255,77,121,0.3)',
+          background: 'rgba(255,255,255,0.85)',
+          border: '2px solid rgba(255,77,121,0.35)',
           borderRadius: '50%',
           width: '32px',
           height: '32px',
@@ -189,16 +191,17 @@ function App() {
           cursor: 'pointer',
           color: '#ff4d79',
           fontWeight: 'bold',
-          backdropFilter: 'blur(6px)',
           boxShadow: '0 2px 8px rgba(255,77,121,0.15)',
+          touchAction: 'manipulation',
         }}
+        aria-label="Informasi"
       >?</button>
       <div
         id="tech-info-panel"
         style={{
           display: 'none',
           marginTop: '8px',
-          background: 'rgba(255,255,255,0.95)',
+          background: 'rgba(255,255,255,0.98)',
           borderRadius: '14px',
           padding: '14px 16px',
           fontSize: '0.78rem',
@@ -208,7 +211,6 @@ function App() {
           textAlign: 'left',
           boxShadow: '0 4px 20px rgba(255,77,121,0.18)',
           border: '1.5px solid rgba(255,77,121,0.2)',
-          backdropFilter: 'blur(8px)',
         }}
       >
         <p style={{ margin: '0 0 6px', fontWeight: 700, color: '#ff4d79' }}>Mau buat pesan ini juga?</p>
@@ -223,82 +225,88 @@ function App() {
     </div>
   );
 
-  if (!hasStarted) {
-    return (
-      <div className="start-screen">
-        <HeartEffect />
-        {techInfoButton}
-        
-        {/* Countdown Overlay */}
-        {(countdown !== null || showHintText) && (
-          <div className="countdown-overlay">
-            {showHintText ? (
-              <p className="countdown-hint">
-                janji, gaakan kaget ya {targetName ? targetName : 'kamu'}
-              </p>
-            ) : (
-              <h1 className="countdown-number" key={countdown}>{countdown}</h1>
-            )}
-          </div>
-        )}
+  return (
+    <>
+      {/* Persistent Canvas Heart Effect (Never unmounted, 0 stutter) */}
+      <HeartEffect />
 
-        <div className="envelope-scene" style={{ opacity: (countdown !== null || showHintText) ? 0 : 1, transition: 'opacity 0.3s ease', pointerEvents: (countdown !== null || showHintText) ? 'none' : 'auto' }}>
-          <div className="envelope-container" ref={wrapperRef} onClick={!isEnvelopeOpened && countdown === null ? handleOpenEnvelope : undefined}>
-            
-            <div className="envelope-back" ref={envelopeBackRef}>
-              <svg viewBox="0 0 100 80" width="100%" height="100%" preserveAspectRatio="none">
-                <path d="M0,0 L100,0 L100,80 L0,80 Z" fill="#ffb3c6" />
-                <path ref={flapRef} d="M0,0 L50,45 L100,0 Z" fill="#ff4d79" />
-              </svg>
+      <audio id="bgMusic" loop preload="metadata">
+        <source src="https://media-hosting.imagekit.io//57d9b82542f24b31/wannabeyours.mp4?Expires=1834834240&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=fLWj0s-DFN0BYhACzcL2Vt6ns3P8OmnzOirGVSK1ntGY0QYL0c7qPjnfzsffd9Fz9SIj71ykx1RLCoDfTwvwTMBGnRQmkpfuTMp5ooR3SNK3Ql-9KF254A2SyHAzKUGdd~v7NsMUpUILrykwbM-B-hU0C31HZrhgvLd4-4~wk7xdS-TZ~pgfHGWuwqZR3-ya1adDQQ6hLAcAiRPQsy2H~4b4lbhdbXSnCdWjCuxb7zMHdIwEqJk3vwvyqHhoY4-HNtlTJXoCj54FPpqSaLBrcCkNsz-d3oUxUztdeYggJVROeUvEiaf1nZ5IlQdm0vrJzbtE93zAZnXHfEE26VZlzg__" type="video/mp4" />
+      </audio>
+
+      {techInfoButton}
+
+      {!hasStarted ? (
+        <div className="start-screen">
+          {/* Countdown Overlay */}
+          {(countdown !== null || showHintText) && (
+            <div className="countdown-overlay">
+              {showHintText ? (
+                <p className="countdown-hint">
+                  janji, gaakan kaget ya {targetName ? targetName : 'kamu'}
+                </p>
+              ) : (
+                <h1 className="countdown-number" key={countdown}>{countdown}</h1>
+              )}
             </div>
+          )}
 
-            <div className="envelope-paper" ref={letterRef}>
-              <div className="paper-content" ref={contentRef} style={{ opacity: 1, filter: !isEnvelopeOpened ? 'blur(6px)' : 'blur(0px)', userSelect: 'none' }}>
-                <h2 style={{ color: '#ff4d79', fontSize: '1.2rem', margin: '0 0 8px' }}>Haii {targetName ? targetName : 'Manis'}!</h2>
-                <p className="modal-desc">Ada sesuatu yang udah lama pengen aku sampaiin... deg-degannya lebih besar dari kata-katanya</p>
-                <button className="btn start-btn" onClick={handleStart} style={{ visibility: isEnvelopeOpened ? 'visible' : 'hidden', opacity: isEnvelopeOpened ? 1 : 0 }}>
-                  Baca yuk!
-                </button>
+          <div 
+            className="envelope-scene" 
+            style={{ 
+              opacity: (countdown !== null || showHintText) ? 0 : 1, 
+              transition: 'opacity 0.25s ease', 
+              pointerEvents: (countdown !== null || showHintText) ? 'none' : 'auto' 
+            }}
+          >
+            <div 
+              className="envelope-container" 
+              ref={wrapperRef} 
+              onClick={!isEnvelopeOpened && countdown === null ? handleOpenEnvelope : undefined}
+            >
+              <div className="envelope-back" ref={envelopeBackRef}>
+                <svg viewBox="0 0 100 80" width="100%" height="100%" preserveAspectRatio="none">
+                  <path d="M0,0 L100,0 L100,80 L0,80 Z" fill="#ffb3c6" />
+                  <path ref={flapRef} d="M0,0 L50,45 L100,0 Z" fill="#ff4d79" />
+                </svg>
+              </div>
+
+              <div className="envelope-paper" ref={letterRef}>
+                <div className="paper-content" ref={contentRef} style={{ opacity: 1, filter: !isEnvelopeOpened ? 'blur(5px)' : 'blur(0px)', userSelect: 'none' }}>
+                  <h2 style={{ color: '#ff4d79', fontSize: '1.2rem', margin: '0 0 8px' }}>Haii {targetName ? targetName : 'Manis'}!</h2>
+                  <p className="modal-desc">Ada sesuatu yang udah lama pengen aku sampaiin... deg-degannya lebih besar dari kata-katanya</p>
+                  <button className="btn start-btn" onClick={handleStart} style={{ visibility: isEnvelopeOpened ? 'visible' : 'hidden', opacity: isEnvelopeOpened ? 1 : 0 }}>
+                    Baca yuk!
+                  </button>
+                </div>
+              </div>
+
+              <div className="envelope-front" ref={envelopeFrontRef}>
+                <svg viewBox="0 0 100 80" width="100%" height="100%" preserveAspectRatio="none">
+                  <path d="M0,80 L50,40 L100,80 Z" fill="#ff758c" />
+                  <path d="M0,0 L50,40 L0,80 Z" fill="#ffb3c6" />
+                  <path d="M100,0 L50,40 L100,80 Z" fill="#ffb3c6" />
+                  {/* Wax seal */}
+                  <circle cx="50" cy="43" r="10" fill="#ff0040" />
+                  <circle cx="50" cy="43" r="8" fill="#cc0033" />
+                  <text x="50" y="47" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">V</text>
+                </svg>
               </div>
             </div>
 
-            <div className="envelope-front" ref={envelopeFrontRef}>
-               <svg viewBox="0 0 100 80" width="100%" height="100%" preserveAspectRatio="none">
-                 <path d="M0,80 L50,40 L100,80 Z" fill="#ff758c" />
-                 <path d="M0,0 L50,40 L0,80 Z" fill="#ffb3c6" />
-                 <path d="M100,0 L50,40 L100,80 Z" fill="#ffb3c6" />
-                 {/* Wax seal */}
-                 <circle cx="50" cy="43" r="10" fill="#ff0040" />
-                 <circle cx="50" cy="43" r="8" fill="#cc0033" />
-                 <text x="50" y="47" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">V</text>
-               </svg>
+            <div className="text-hint" ref={textHintRef} style={{ textAlign: 'center', marginTop: '20px' }}>
+              <p className="envelope-text" style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '0 0 6px 0' }}>
+                Ada surat spesial buat kamu nih {targetName ? targetName : 'kamu'}!
+              </p>
+              <p className="click-hint bounce-text" style={{ fontSize: '0.85rem', color: '#ff758c', cursor: 'pointer', margin: 0 }}>
+                (klik amplopnya ya {targetName ? targetName : 'kamu'} plisss!)
+              </p>
             </div>
           </div>
-
-          {/* BAGIAN TEKS YANG DIBIKIN MAKIN GEMOY */}
-          <div className="text-hint" ref={textHintRef} style={{ textAlign: 'center', marginTop: '25px' }}>
-            <p className="envelope-text" style={{ fontSize: '1.15rem', fontWeight: 'bold', margin: '0 0 8px 0' }}>
-              Ada surat spesial buat kamu nih {targetName ? targetName : 'kamu'}!
-            </p>
-            <p className="click-hint bounce-text" style={{ fontSize: '0.88rem', color: '#ff758c', cursor: 'pointer', margin: 0 }}>
-              (klik amplopnya ya {targetName ? targetName : 'kamu'} plisss!)
-            </p>
-          </div>
         </div>
-
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <audio id="bgMusic" loop>
-          <source src="https://media-hosting.imagekit.io//57d9b82542f24b31/wannabeyours.mp4?Expires=1834834240&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=fLWj0s-DFN0BYhACzcL2Vt6ns3P8OmnzOirGVSK1ntGY0QYL0c7qPjnfzsffd9Fz9SIj71ykx1RLCoDfTwvwTMBGnRQmkpfuTMp5ooR3SNK3Ql-9KF254A2SyHAzKUGdd~v7NsMUpUILrykwbM-B-hU0C31HZrhgvLd4-4~wk7xdS-TZ~pgfHGWuwqZR3-ya1adDQQ6hLAcAiRPQsy2H~4b4lbhdbXSnCdWjCuxb7zMHdIwEqJk3vwvyqHhoY4-HNtlTJXoCj54FPpqSaLBrcCkNsz-d3oUxUztdeYggJVROeUvEiaf1nZ5IlQdm0vrJzbtE93zAZnXHfEE26VZlzg__" type="video/mp4" />
-      </audio>
-      <HeartEffect />
-      {techInfoButton}
-
-      <Gombalan targetName={targetName} onSuccess={handleSuccess} />
+      ) : (
+        <Gombalan targetName={targetName} onSuccess={handleSuccess} />
+      )}
     </>
   );
 }

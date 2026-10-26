@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import gsap from 'gsap';
 
@@ -34,14 +34,30 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
     const [isShaking, setIsShaking] = useState(false);
     const [noBtnOffset, setNoBtnOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
+    const offsetRef = useRef({ x: 0, y: 0 });
     const noBtnRef = useRef<HTMLButtonElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const titleRef    = useRef<HTMLHeadingElement>(null);
-    const imageRef    = useRef<HTMLImageElement>(null);
-    const buttonsRef  = useRef<HTMLDivElement>(null);
+    const titleRef = useRef<HTMLHeadingElement>(null);
+    const imageRef = useRef<HTMLImageElement>(null);
+    const buttonsRef = useRef<HTMLDivElement>(null);
     const acceptAudioRef = useRef<HTMLAudioElement | null>(null);
 
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches);
+
+    // Preload reaction images to eliminate image decode freezes
+    useEffect(() => {
+        const urlsToPreload = [
+            'https://i.pinimg.com/736x/e4/72/4d/e4724dc43d60d24fa01eda5d6614715a.jpg',
+            'https://i.pinimg.com/736x/1e/7c/6f/1e7c6ff7a0c26f7eaefbce683656193d.jpg',
+            'https://i.pinimg.com/736x/90/73/a9/9073a9359bff531cd830ae7384752934.jpg',
+            'https://i.pinimg.com/736x/a6/43/f5/a643f5a40db387585b56bc767b66fddb.jpg',
+            'https://media.tenor.com/gUiu1zyxfzYAAAAi/good-night-kiss-kiss.gif'
+        ];
+        urlsToPreload.forEach(url => {
+            const img = new Image();
+            img.src = url;
+        });
+    }, []);
 
     /* ─── Text helpers ─── */
     const getTitleText = () => {
@@ -77,14 +93,14 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
     };
 
     // Yes button grows, No button shrinks
-    const yesFontSize = `${Math.min(1.1 + noCount * 0.18, 2.3)}rem`;
-    const yesPadding  = `${Math.min(10 + noCount * 4, 22)}px ${Math.min(24 + noCount * 6, 56)}px`;
-    const noFontSize  = `${Math.max(1.0 - noCount * 0.09, 0.55)}rem`;
+    const yesFontSize = `${Math.min(1.05 + noCount * 0.16, 2.0)}rem`;
+    const yesPadding = `${Math.min(10 + noCount * 3, 20)}px ${Math.min(22 + noCount * 5, 50)}px`;
+    const noFontSize = `${Math.max(0.95 - noCount * 0.08, 0.65)}rem`;
 
     /* ─── Shake ─── */
     const triggerShake = () => {
         setIsShaking(true);
-        setTimeout(() => setIsShaking(false), 600);
+        setTimeout(() => setIsShaking(false), 500);
     };
 
     /* ─── Audio crossfade helper ─── */
@@ -94,14 +110,14 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
         // Fade out background music
         if (bgMusic && !bgMusic.paused) {
             const fadeOut = setInterval(() => {
-                if (bgMusic.volume > 0.02) {
-                    bgMusic.volume = Math.max(0, bgMusic.volume - 0.02);
+                if (bgMusic.volume > 0.04) {
+                    bgMusic.volume = Math.max(0, bgMusic.volume - 0.04);
                 } else {
                     bgMusic.pause();
                     bgMusic.volume = 0;
                     clearInterval(fadeOut);
                 }
-            }, 50);
+            }, 60);
         }
 
         // Fade in acceptance song
@@ -113,10 +129,10 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
         audio.play().then(() => {
             let vol = 0;
             const fadeIn = setInterval(() => {
-                vol = Math.min(vol + 0.01, 0.5);
+                vol = Math.min(vol + 0.02, 0.5);
                 audio.volume = vol;
                 if (vol >= 0.5) clearInterval(fadeIn);
-            }, 40);
+            }, 50);
         }).catch(e => console.log('Accept audio blocked:', e));
     };
 
@@ -126,21 +142,33 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
         onSuccess(noCount);
         crossfadeToAcceptSong();
 
-        const duration = 3000;
+        // Optimized lightweight confetti bursts for mobile
+        const duration = 2500;
         const end = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+        const particleCount = isMobile ? 18 : 40;
+        const defaults = { startVelocity: 25, spread: 360, ticks: 50, zIndex: 10000 };
+
         const ticker = setInterval(() => {
             const timeLeft = end - Date.now();
             if (timeLeft <= 0) return clearInterval(ticker);
-            confetti({ ...defaults, particleCount: 50 * (timeLeft / duration), origin: { x: Math.random(), y: Math.random() - 0.2 } });
-        }, 250);
+            confetti({
+                ...defaults,
+                particleCount: Math.round(particleCount * (timeLeft / duration)),
+                origin: { x: Math.random(), y: Math.random() - 0.2 }
+            });
+        }, 320);
 
         setTimeout(() => {
             setCardFading(true);
             setTimeout(() => {
                 setCardFading(false);
                 setIsOfficiallyCouple(true);
-                confetti({ particleCount: 130, spread: 110, origin: { y: 0.5 }, zIndex: 10000 });
+                confetti({
+                    particleCount: isMobile ? 50 : 110,
+                    spread: 100,
+                    origin: { y: 0.5 },
+                    zIndex: 10000
+                });
 
                 setTimeout(() => {
                     setCardFading(true);
@@ -149,11 +177,16 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
                         setJadianDate(today.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
                         setCardFading(false);
                         setShowDateCard(true);
-                        confetti({ particleCount: 170, spread: 140, origin: { y: 0.6 }, zIndex: 10000 });
-                    }, 800);
-                }, 3500);
-            }, 800);
-        }, 5000);
+                        confetti({
+                            particleCount: isMobile ? 65 : 140,
+                            spread: 120,
+                            origin: { y: 0.55 },
+                            zIndex: 10000
+                        });
+                    }, 650);
+                }, 3000);
+            }, 650);
+        }, 4500);
     };
 
     const handleNoClick = () => {
@@ -163,43 +196,43 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
 
     const isRunning = noCount >= RUN_AFTER;
 
-    const clampAndSetNoOffset = (x: number, y: number) => {
-        // Keep movement around original button slot so it never leaves the card.
-        const limitX = isMobile ? 52 : 120;
-        const limitY = isMobile ? 28 : 58;
+    const clampAndSetNoOffset = useCallback((x: number, y: number) => {
+        const limitX = isMobile ? 48 : 110;
+        const limitY = isMobile ? 26 : 52;
         const safeX = Math.max(-limitX, Math.min(x, limitX));
         const safeY = Math.max(-limitY, Math.min(y, limitY));
+        offsetRef.current = { x: safeX, y: safeY };
         setNoBtnOffset({ x: safeX, y: safeY });
-    };
+    }, [isMobile]);
 
-    const runAway = (cursorX?: number, cursorY?: number) => {
+    const runAway = useCallback((cursorX?: number, cursorY?: number) => {
         if (!noBtnRef.current) return;
         const btnRect = noBtnRef.current.getBoundingClientRect();
 
-        let nextX = noBtnOffset.x;
-        let nextY = noBtnOffset.y;
+        let nextX = offsetRef.current.x;
+        let nextY = offsetRef.current.y;
 
         if (cursorX != null && cursorY != null) {
             const centerX = btnRect.left + btnRect.width / 2;
             const centerY = btnRect.top + btnRect.height / 2;
             const angle = Math.atan2(centerY - cursorY, centerX - cursorX);
-            const jump = isMobile ? 44 : 78;
+            const jump = isMobile ? 42 : 72;
 
-            nextX = noBtnOffset.x + Math.cos(angle) * jump;
-            nextY = noBtnOffset.y + Math.sin(angle) * (jump * 0.55);
+            nextX = offsetRef.current.x + Math.cos(angle) * jump;
+            nextY = offsetRef.current.y + Math.sin(angle) * (jump * 0.55);
         } else {
-            nextX = noBtnOffset.x + (Math.random() > 0.5 ? 52 : -52);
-            nextY = noBtnOffset.y + (Math.random() > 0.5 ? 24 : -24);
+            nextX = offsetRef.current.x + (Math.random() > 0.5 ? 48 : -48);
+            nextY = offsetRef.current.y + (Math.random() > 0.5 ? 22 : -22);
         }
 
         clampAndSetNoOffset(nextX, nextY);
-    };
+    }, [clampAndSetNoOffset, isMobile]);
 
-    // Desktop: escape when cursor gets close.
+    // Desktop: escape when cursor gets close
     useEffect(() => {
         if (!isRunning || isMobile) return;
 
-        const PROXIMITY = 95;
+        const PROXIMITY = 90;
         const onMouseMove = (e: MouseEvent) => {
             if (!noBtnRef.current) return;
             const rect = noBtnRef.current.getBoundingClientRect();
@@ -212,11 +245,11 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
             }
         };
 
-        document.addEventListener('mousemove', onMouseMove);
-        return () => document.removeEventListener('mousemove', onMouseMove);
-    }, [isRunning, isMobile, noBtnOffset]);
+        window.addEventListener('mousemove', onMouseMove, { passive: true });
+        return () => window.removeEventListener('mousemove', onMouseMove);
+    }, [isRunning, isMobile, runAway]);
 
-    // Mobile: move away on touch, prevent accidental click.
+    // Mobile: move away on touch
     useEffect(() => {
         if (!isRunning || !isMobile || !noBtnRef.current) return;
 
@@ -229,40 +262,37 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
 
         btn.addEventListener('touchstart', onTouchStart, { passive: false });
         return () => btn.removeEventListener('touchstart', onTouchStart);
-    }, [isRunning, isMobile, noBtnOffset]);
+    }, [isRunning, isMobile, runAway]);
 
     useEffect(() => {
         if (!isRunning) {
+            offsetRef.current = { x: 0, y: 0 };
             setNoBtnOffset({ x: 0, y: 0 });
         }
     }, [isRunning]);
 
-    // Entrance animation — staggered professional reveal
+    // Entrance animation — clean and snappy
     useEffect(() => {
         if (!containerRef.current) return;
 
-        const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-        // 1. Card slides up + fades in
         tl.fromTo(containerRef.current,
-            { y: 80, opacity: 0, scale: 0.92, rotationX: 8 },
-            { y: 0, opacity: 1, scale: 1, rotationX: 0, duration: 1.6, clearProps: 'rotationX,scale' }
+            { y: 40, opacity: 0, scale: 0.95 },
+            { y: 0, opacity: 1, scale: 1, duration: 0.75, clearProps: 'transform' }
         )
-        // 2. Title drops in from above
         .fromTo(titleRef.current,
-            { y: -30, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.9, ease: 'back.out(1.8)' },
-        '-=0.9')
-        // 3. Image pops
+            { y: -16, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.5 },
+        '-=0.45')
         .fromTo(imageRef.current,
-            { scale: 0.75, opacity: 0 },
-            { scale: 1, opacity: 1, duration: 1.0, ease: 'back.out(1.6)' },
-        '-=0.5')
-        // 4. Buttons slide up
+            { scale: 0.85, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.5 },
+        '-=0.35')
         .fromTo(buttonsRef.current,
-            { y: 24, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.85, ease: 'back.out(1.5)' },
-        '-=0.45');
+            { y: 16, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.45 },
+        '-=0.3');
     }, []);
 
     /* ─── Render ─── */
@@ -271,68 +301,67 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
             ref={containerRef}
             className={`container${isShaking ? ' is-shaking' : ''}`}
             style={{
-                width: isMobile ? '90vw' : '470px',
-                minHeight: '290px',
-                padding: '3rem',
-                position: 'relative', // Sangat Penting: agar 'absolute' di tombol No mengacu ke card ini
+                width: isMobile ? '92vw' : '460px',
+                minHeight: '270px',
+                position: 'relative',
                 zIndex: 10,
-                transition: 'opacity 0.8s ease',
+                transition: 'opacity 0.6s ease',
                 opacity: cardFading ? 0 : 1,
-                overflow: 'hidden', // Opsional: menjaga elemen agar terlihat rapi saat mendekati ujung padding
-                backgroundColor: '#fff', // Pastikan background solid untuk test (sesuaikan dengan CSS aslimu)
-                borderRadius: '20px'
             }}
         >
             {showDateCard ? (
                 /* ── TANGGAL JADIAN ── */
                 <>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px', animation: 'heartbeat 1.4s infinite', color: '#ff4d79', letterSpacing: '0.04em' }}>
+                    <div style={{ fontSize: '1.6rem', fontWeight: 900, marginBottom: '8px', animation: 'heartbeat 1.4s infinite', color: '#ff4d79' }}>
                         {targetName ? targetName : 'Kamu'}
                     </div>
-                    <h1 className="title" style={{ fontSize: isMobile ? '1.3rem' : '1.6rem', marginBottom: '8px', lineHeight: '1.4' }}>
+                    <h1 className="title" style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', marginBottom: '8px', lineHeight: '1.4' }}>
                         TANGGAL JADIAN KITA!!
                     </h1>
                     <p style={{
-                        color: '#ff1a53', fontWeight: 900, fontSize: isMobile ? '1.05rem' : '1.25rem',
-                        margin: '0 0 16px', textShadow: '0 2px 10px rgba(255,26,83,0.3)',
-                        animation: 'popIn 0.6s cubic-bezier(0.34,1.56,0.64,1)',
+                        color: '#ff1a53', fontWeight: 900, fontSize: isMobile ? '1.05rem' : '1.2rem',
+                        margin: '0 0 14px', textShadow: '0 2px 8px rgba(255,26,83,0.25)',
                     }}>
                         {jadianDate}
                     </p>
                     <img
                         src="https://media1.tenor.com/m/HZA1YV1NQkwAAAAC/happy-dance-panda.gif"
                         alt="celebration"
-                        style={{ maxWidth: '100%', maxHeight: '190px', borderRadius: '20px', objectFit: 'cover', marginBottom: '14px', animation: 'popIn 0.7s cubic-bezier(0.34,1.56,0.64,1)' }}
+                        loading="eager"
+                        decoding="async"
+                        style={{ maxWidth: '100%', maxHeight: '180px', borderRadius: '16px', objectFit: 'cover', marginBottom: '12px' }}
                     />
-                    <p style={{ color: '#ff758c', fontSize: '1rem', fontWeight: 'bold', margin: '0 0 4px' }}>
+                    <p style={{ color: '#ff758c', fontSize: '0.98rem', fontWeight: 'bold', margin: '0 0 4px' }}>
                         Happy anniversary setiap hari!
                     </p>
-                    <p style={{ color: '#ffb3c6', fontSize: '0.85rem', margin: 0 }}>
+                    <p style={{ color: '#ffb3c6', fontSize: '0.82rem', margin: 0 }}>
                         semoga kita selalu bahagia ya
                     </p>
                 </>
             ) : isOfficiallyCouple ? (
                 /* ── RESMI PACARAN ── */
                 <>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px', animation: 'heartbeat 1.2s infinite', color: '#ff4d79', letterSpacing: '0.04em' }}>
+                    <div style={{ fontSize: '1.6rem', fontWeight: 900, marginBottom: '8px', animation: 'heartbeat 1.2s infinite', color: '#ff4d79' }}>
                         {targetName ? targetName : 'Kamu'}
                     </div>
-                    <h1 className="title" style={{ fontSize: isMobile ? '1.2rem' : '1.5rem', marginBottom: '16px', animation: 'popIn 0.6s cubic-bezier(0.34,1.56,0.64,1)', lineHeight: '1.4' }}>
+                    <h1 className="title" style={{ fontSize: isMobile ? '1.15rem' : '1.45rem', marginBottom: '14px', lineHeight: '1.4' }}>
                         KITA RESMI PACARAN YA {targetName ? targetName.toUpperCase() : 'KAMU'}!
                     </h1>
                     <img
                         src="https://media1.tenor.com/m/b_rlhykPQ4AAAAAC/love.gif"
                         alt="couple"
-                        style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '20px', objectFit: 'cover', marginBottom: '16px', animation: 'popIn 0.7s cubic-bezier(0.34,1.56,0.64,1)' }}
+                        loading="eager"
+                        decoding="async"
+                        style={{ maxWidth: '100%', maxHeight: '190px', borderRadius: '16px', objectFit: 'cover', marginBottom: '14px' }}
                     />
-                    <p style={{ color: '#ff758c', fontSize: '1.05rem', fontWeight: 'bold', margin: 0 }}>
+                    <p style={{ color: '#ff758c', fontSize: '1rem', fontWeight: 'bold', margin: 0 }}>
                         muah!
                     </p>
                 </>
             ) : (
                 /* ── MAIN QUESTION ── */
                 <>
-                    <h1 ref={titleRef} className="title" style={{ fontSize: isMobile ? '1.2rem' : '1.45rem', marginBottom: '14px', lineHeight: '1.45' }}>
+                    <h1 ref={titleRef} className="title" style={{ fontSize: isMobile ? '1.15rem' : '1.4rem', marginBottom: '12px', lineHeight: '1.4' }}>
                         {getTitleText()}
                     </h1>
 
@@ -340,11 +369,13 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
                         ref={imageRef}
                         src={getImageSrc()}
                         alt="reaction"
-                        style={{ maxWidth: '100%', maxHeight: '190px', borderRadius: '15px', objectFit: 'cover', display: 'block', margin: '0 auto 18px', transition: 'opacity 0.4s ease' }}
+                        loading="eager"
+                        decoding="async"
+                        style={{ maxWidth: '100%', maxHeight: '180px', borderRadius: '14px', objectFit: 'cover', display: 'block', margin: '0 auto 16px', transition: 'opacity 0.3s ease' }}
                     />
 
                     {!isAccepted && (
-                        <div ref={buttonsRef} className="buttons" style={{ display: 'flex', gap: '14px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginTop: '1rem' }}>
+                        <div ref={buttonsRef} className="buttons" style={{ display: 'flex', gap: '12px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginTop: '0.8rem' }}>
                             <button
                                 className="btn yes-btn"
                                 onClick={handleYesClick}
@@ -357,8 +388,8 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
                                     borderRadius: '50px',
                                     cursor: 'pointer',
                                     fontWeight: 'bold',
-                                    transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
-                                    boxShadow: '0 4px 20px rgba(255,77,121,0.5)',
+                                    boxShadow: '0 4px 16px rgba(255,77,121,0.4)',
+                                    touchAction: 'manipulation',
                                 }}
                             >
                                 IYA mau!
@@ -378,19 +409,20 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
                                     if (isRunning) runAway();
                                 }}
                                 style={{
-                                    padding: '10px 22px',
+                                    padding: '9px 20px',
                                     fontSize: noFontSize,
                                     backgroundColor: '#f5f5f5',
-                                    color: '#aaa',
+                                    color: '#888',
                                     border: '2px solid #e0e0e0',
                                     borderRadius: '50px',
                                     cursor: 'pointer',
                                     fontWeight: 'bold',
+                                    touchAction: 'manipulation',
                                     ...(isRunning ? {
                                         position: 'relative' as const,
-                                        transform: `translate(${noBtnOffset.x}px, ${noBtnOffset.y}px)`,
-                                        transition: 'transform 0.2s ease',
+                                        transform: `translate3d(${noBtnOffset.x}px, ${noBtnOffset.y}px, 0)`,
                                         zIndex: 9999,
+                                        willChange: 'transform',
                                     } : {}),
                                 }}
                             >
@@ -400,7 +432,7 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
                     )}
 
                     {noCount > 0 && !isAccepted && (
-                        <p style={{ color: '#ffccd5', fontSize: '0.75rem', marginTop: '10px', marginBottom: 0 }}>
+                        <p style={{ color: '#ffb3c6', fontSize: '0.75rem', marginTop: '10px', marginBottom: 0 }}>
                             Kamu udah nyoba pencet tombol gamau sebanyak {noCount}x loh
                         </p>
                     )}
@@ -410,4 +442,4 @@ const Gombalan: React.FC<GombalanProps> = ({ targetName, onSuccess }) => {
     );
 };
 
-export default Gombalan;
+export default React.memo(Gombalan);
