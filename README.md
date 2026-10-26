@@ -16,7 +16,7 @@ Kalau doi jawab **"IYA mau!"**, confetti bertebaran, lagu romantis menyala, dan 
 
 ---
 
-## 📸 Preview
+## Preview
 
 <div align="center">
   <table>
@@ -44,20 +44,7 @@ Kalau doi jawab **"IYA mau!"**, confetti bertebaran, lagu romantis menyala, dan 
 
 ---
 
-## ✨ Fitur Utama
-
-### 🎬 Pengalaman Interaktif
-* **Animasi Amplop** — Klik amplop untuk reveal pesan dengan animasi GSAP smooth.
-* **Countdown Dramatis** — Hitung mundur 3… 2… 1… sebelum memunculkan pesan inti.
-* **Tombol "gamau" Kabur** — Tombol bergerak menghindar (transform-based) saat coba diklik.
-* **Confetti & Lagu** — Efek selebrasi otomatis saat status berubah jadi "Accepted".
-
-### 🎨 Visual & Audio
-* **Heart Effect** — Animasi hujan hati di background untuk suasana romantis.
-* **Background Music** — Musik otomatis dengan transisi crossfade ke lagu penerimaan.
-* **Responsive** — Tampilan optimal di perangkat mobile maupun desktop.
-
-### ⚙️ Backend & Discord
+### Backend & Discord
 * **Discord Bot** — Command `!tembak` atau `!gombal` untuk generate link spesial secara otomatis.
 * **Discord Webhook** — Notifikasi real-time ke server saat doi klik "IYA mau!".
 
@@ -82,7 +69,7 @@ Kalau doi jawab **"IYA mau!"**, confetti bertebaran, lagu romantis menyala, dan 
 
 ---
 
-## 🚀 Instalasi & Setup
+## Instalasi & Setup
 
 ### 1. Backend
 ```bash
@@ -100,8 +87,6 @@ npm run dev
 ```
 
 ---
-
-## 📄 Lisensi
 
 Project ini dibuat untuk hiburan dan personal. Bebas dimodifikasi.
 
