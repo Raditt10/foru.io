@@ -26,7 +26,7 @@ function App() {
       setTargetName(target);
       document.title = `SURAT TERBUKA UNTUK ${target.toUpperCase()}`;
     } else {
-      document.title = 'FOR U';
+      document.title = 'foru.io';
     }
   }, []);
 
