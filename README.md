@@ -1,4 +1,4 @@
-﻿# forU - Buat Kamu (Love Confession Web)
+﻿# forU (Love Confession Web)
 
 <p align="center">
   <img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
@@ -50,7 +50,7 @@ Kalau doi jawab **"IYA mau!"**, dan notifikasi otomatis masuk ke Discord kamu!
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 | Tech | Versi |
@@ -89,5 +89,3 @@ npm run dev
 ---
 
 Project ini dibuat untuk hiburan dan personal. Bebas dimodifikasi.
-
-_© 2025 Dikembangkan oleh [Raditt10](https://github.com/Raditt10)_
