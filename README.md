@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/Canvas_Confetti-FF6B6B?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48dGV4dCB5PSIxOCIgZm9udC1zaXplPSIxOCI+8J+OiTwvdGV4dD48L3N2Zz4=&logoColor=white" />
 </p>
 
-**forU ** adalah web interaktif untuk nembak doi secara kreatif! Kirim link spesial lewat Discord atau langsung, lengkap dengan animasi amplop, countdown, dan tombol "gamau" yang lari-larian.
+**foru.io** adalah web interaktif untuk nembak doi secara kreatif! Kirim link spesial lewat Discord atau langsung, lengkap dengan animasi amplop, countdown, dan tombol "gamau" yang lari-larian.
 Kalau doi jawab **"IYA mau!"**, dan notifikasi otomatis masuk ke Discord kamu! 
 
 ---
